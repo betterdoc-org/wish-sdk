@@ -1,0 +1,21 @@
+{
+  "name": "wish_sdk_development",
+  "version": "0.1.0",
+  "description": "WishSdk Interactive Showcase",
+  "repository": {},
+  "license": "MIT",
+  "scripts": {
+    "deploy": "cd .. && mix assets.deploy && rm -f _build/esbuild"
+  },
+  "dependencies": {
+    "phoenix": "file:../deps/phoenix",
+    "phoenix_html": "file:../deps/phoenix_html",
+    "phoenix_live_view": "file:../deps/phoenix_live_view"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.2",
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.1.0"
+  }
+}
