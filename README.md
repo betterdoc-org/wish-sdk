@@ -1,10 +1,21 @@
 # WishSdk
 
-Elixir SDK for integrating BetterPrompts from Wish API into your applications.
+**Elixir SDK for seamless BetterPrompt AI integration**
+
+WishSdk is a thin Elixir client library that enables smooth integration of published BetterPrompts into your Elixir applications. It provides both simple function-based APIs and optional LiveView components.
+
+## Features
+
+- 🚀 **Simple API**: Invoke prompts with `WishSdk.invoke/2` or stream with `WishSdk.stream/2`
+- 🔒 **Type-Safe**: Generate Ecto-based modules with validation for each prompt
+- 📡 **Streaming Support**: Real-time streaming responses via Server-Sent Events
+- 🎨 **LiveView Components**: Optional UI components for interactive prompts
+- 🔧 **Mix Tasks**: Code generation from your Wish API schema
+- 📚 **Well Documented**: Comprehensive docs and interactive showcase app
 
 ## Installation
 
-Add to `mix.exs`:
+Add `wish_sdk` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
@@ -16,7 +27,7 @@ end
 
 ## Configuration
 
-In `config/config.exs`:
+Configure your Wish API endpoint and platform token in `config/config.exs`:
 
 ```elixir
 config :wish_sdk,
@@ -24,7 +35,7 @@ config :wish_sdk,
   api_token: "your-platform-token"
 ```
 
-The token is sent as `x-platform-internal-call-token` header.
+The `api_token` is sent as the `x-platform-internal-call-token` header for authenticated endpoints.
 
 Or use environment variables:
 
@@ -33,31 +44,23 @@ export WISH_API_URL=https://your-wish-instance.com
 export WISH_API_TOKEN=your-platform-token
 ```
 
-## Usage
+## Quick Start
 
-### Generate Type-Safe Modules
+### 1. Generate Type-Safe Modules (Recommended)
 
-Discover available prompts:
-
-```bash
-mix wish.list.prompts
-```
-
-Generate the prompt you need:
+First, generate compile-time safe modules for your prompts:
 
 ```bash
-# Generate a single prompt (recommended)
-mix wish.gen.prompt medical-summary
-# => creates lib/wish_prompts/medical_summary.ex
+mix wish.gen.prompts
 ```
 
-This creates an Ecto schema with `@enforce_keys` for compile-time safety:
+This creates modules with `@enforce_keys` for compile-time safety:
 
 ```elixir
-# lib/wish_prompts/medical_summary.ex
 defmodule MyApp.Prompts.MedicalSummary do
   use Ecto.Schema
   
+  # Compile-time safety!
   @enforce_keys [:case_id, :document_id]
   
   embedded_schema do
@@ -70,67 +73,95 @@ defmodule MyApp.Prompts.MedicalSummary do
 end
 ```
 
-### Invoke
+### 2. Use with Compile-Time Safety
 
 ```elixir
 alias MyApp.Prompts.MedicalSummary
 
-# Using struct (compile-time safe)
-%MedicalSummary{case_id: "123", document_id: "456"}
-|> WishSdk.invoke()
+# ✅ Compile-time safe - won't compile if fields are missing!
+prompt = %MedicalSummary{
+  case_id: "123",
+  document_id: "456"
+}
 
-# Using helper
-MedicalSummary.invoke(case_id: "123", document_id: "456")
+{:ok, response} = WishSdk.invoke(prompt)
+IO.puts(response)
+# => "The patient presents with..."
 
-# Using string slug (no compile-time safety)
-WishSdk.invoke("medical-summary",
-  context_variables: %{case_id: "123", document_id: "456"}
+# Or use the module helper
+{:ok, response} = MedicalSummary.invoke(
+  case_id: "123",
+  document_id: "456"
 )
 ```
 
-### Stream
+### 3. Streaming with Structs
 
 ```elixir
+alias MyApp.Prompts.MedicalSummary
+
 %MedicalSummary{case_id: "123", document_id: "456"}
 |> WishSdk.stream(
   on_chunk: fn chunk -> IO.write(chunk) end,
-  on_done: fn _ -> IO.puts("\n✓ Complete") end,
+  on_done: fn _ -> IO.puts("\n✓ Complete!") end,
   on_error: fn error -> IO.puts("Error: #{inspect(error)}") end
 )
 ```
 
-## LiveView Integration
+### Alternative: String-Based API (No Compile-Time Safety)
+
+For prototyping or dynamic scenarios, you can use the string-based API:
+
+```elixir
+# ⚠️ No compile-time validation
+{:ok, response} = WishSdk.invoke("medical-summary",
+  context_variables: %{
+    case_id: "123",
+    document_id: "456"
+  }
+)
+```
+
+**Note**: This approach provides no compile-time safety. Typos and missing fields will only be caught at runtime.
+
+## LiveView Integration (Pure Elixir)
+
+WishSdk is designed to work seamlessly with Phoenix LiveView using **pure Elixir** - no JavaScript required!
 
 ### Setup
 
-In `lib/my_app_web.ex`:
+Import components in your `lib/my_app_web.ex`:
 
 ```elixir
 defp html_helpers do
   quote do
+    # ... other imports
     use WishSdk.Components
   end
 end
 ```
 
-### Example
+### Using in LiveView
+
+All API calls happen server-side in your LiveView process:
 
 ```elixir
 defmodule MyAppWeb.PromptLive do
   use MyAppWeb, :live_view
-  alias MyApp.Prompts.MedicalSummary
 
   def mount(_params, _session, socket) do
     {:ok, assign(socket, response: "", status: :idle)}
   end
 
-  def handle_event("generate", %{"case_id" => case_id, "doc_id" => doc_id}, socket) do
+  def handle_event("invoke", _params, socket) do
     socket = assign(socket, status: :streaming, response: "")
     
-    {:ok, _} = %MedicalSummary{case_id: case_id, document_id: doc_id}
-    |> WishSdk.stream(
+    # Stream from Elixir backend
+    {:ok, _task} = WishSdk.stream("medical-summary",
+      context_variables: %{case_id: "123"},
       on_chunk: fn chunk -> send(self(), {:chunk, chunk}) end,
-      on_done: fn _ -> send(self(), :done) end
+      on_done: fn response -> send(self(), {:done, response}) end,
+      on_error: fn error -> send(self(), {:error, error}) end
     )
     
     {:noreply, socket}
@@ -140,180 +171,47 @@ defmodule MyAppWeb.PromptLive do
     {:noreply, update(socket, :response, &(&1 <> chunk))}
   end
 
-  def handle_info(:done, socket) do
+  def handle_info({:done, _response}, socket) do
     {:noreply, assign(socket, :status, :done)}
+  end
+
+  def handle_info({:error, error}, socket) do
+    {:noreply, socket |> assign(:status, :error) |> put_flash(:error, inspect(error))}
   end
 
   def render(assigns) do
     ~H"""
-    <.wish_prompt response={@response} status={@status} />
+    <div>
+      <button phx-click="invoke">Generate Summary</button>
+      <.wish_prompt response={@response} status={@status} />
+    </div>
     """
   end
 end
 ```
 
-## API Reference
+### Optional JavaScript Hooks
 
-### `WishSdk.invoke/2`
+JavaScript hooks are **optional** and only provide UI enhancements like auto-scrolling. The SDK works perfectly without them!
 
-```elixir
-WishSdk.invoke(prompt_or_slug, opts \\ [])
+If you want the optional hooks:
+
+```javascript
+import WishHooks from "wish-sdk";
+
+let liveSocket = new LiveSocket("/live", Socket, {
+  hooks: WishHooks,  // Optional!
+  params: {_csrf_token: csrfToken}
+})
 ```
-
-**Arguments:**
-- `prompt_or_slug` - Prompt struct (e.g., `%MedicalSummary{}`) or slug string
-- `opts` - Options keyword list
-
-**Options:**
-- `:context_variables` - Map of context variables (when using slug)
-- `:user_prompt` - User prompt text
-- `:api_url` - Override API URL
-- `:api_token` - Override API token
-- `:timeout` - Timeout in ms (default: 30000)
-
-**Returns:** `{:ok, response}` or `{:error, reason}`
-
-### `WishSdk.stream/2`
-
-```elixir
-WishSdk.stream(prompt_or_slug, opts \\ [])
-```
-
-**Options:**
-- `:context_variables` - Map of context variables (when using slug)
-- `:user_prompt` - User prompt text
-- `:on_chunk` - Callback for each chunk: `fn chunk -> ... end`
-- `:on_done` - Callback when complete: `fn full_response -> ... end`
-- `:on_error` - Callback on error: `fn error -> ... end`
-- `:on_connected` - Callback when connected: `fn -> ... end`
-- `:api_url` - Override API URL
-- `:api_token` - Override API token
-
-**Returns:** `{:ok, task}` or `{:error, reason}`
-
-### `WishSdk.fetch_schema/1`
-
-Fetch schemas for all available prompts.
-
-### `WishSdk.fetch_prompt_schema/2`
-
-Fetch schema for a specific prompt by slug.
-
-## Mix Tasks
-
-### `mix wish.list.prompts`
-
-List all available prompts from your Wish API:
-
-```bash
-mix wish.list.prompts
-```
-
-### `mix wish.gen.prompt`
-
-Generate a type-safe module for a single prompt:
-
-```bash
-mix wish.gen.prompt SLUG
-```
-
-**Options:**
-- `--api-url` - Override API URL
-- `--output-dir` - Output directory (default: `lib/wish_prompts`)
-- `--module-prefix` - Module prefix (default: `YourApp.Prompts`)
-
-**Example:**
-```bash
-mix wish.gen.prompt medical-summary
-```
-
-### `mix wish.gen.prompts` (Batch)
-
-Generate multiple prompts at once (output to `lib/wish_prompts`):
-
-```bash
-# Generate specific prompts
-mix wish.gen.prompts --only medical-summary,case-analyzer
-
-# Generate all except some
-mix wish.gen.prompts --except test-prompt,debug-helper
-```
-
-## Components
-
-### `<.wish_response />`
-
-```heex
-# Markdown (default)
-<.wish_response content={@response} />
-
-# With streaming cursor and auto-scroll
-<.wish_response content={@response} streaming={true} auto_scroll={true} />
-
-# Plain text
-<.wish_response content={@response} format="text" />
-
-# Loading state
-<.wish_response content="" loading={true} />
-
-# Loading state with custom size
-<.wish_response content="" loading={true} size="large" />
-```
-
-Display formatted responses with markdown support (default).
-
-**Attributes:**
-- `content` - Response content
-- `format` - `"markdown"` (default), `"text"`, or `"html"`
-- `streaming` - Show streaming cursor animation
-- `loading` - Show loading spinner
-- `size` - Spinner size: `"small"`, `"medium"` (default), or `"large"`
-- `auto_scroll` - Auto-scroll to bottom during updates (requires JavaScript hooks)
-- `class` - Additional CSS classes
-
-### `<.wish_prompt />`
-
-```heex
-<.wish_prompt response={@response} status={@status} />
-
-# With auto-scroll and markdown (default)
-<.wish_prompt response={@response} status={@status} auto_scroll={true} />
-
-# Plain text format
-<.wish_prompt response={@response} status={@status} format="text" />
-```
-
-Combined prompt display with response and status. Uses `wish_response` internally with markdown rendering by default.
-
-**Attributes:**
-- `response` - Response content
-- `status` - Current status (`:idle`, `:streaming`, `:done`, `:error`)
-- `format` - Response format: `"markdown"` (default), `"text"`, or `"html"`
-- `auto_scroll` - Auto-scroll to bottom during updates (default: `false`)
-- `show_status` - Show status indicator (default: `true`)
-- `class` - Additional CSS classes
-
-### `<.wish_status />`
-
-```heex
-<.wish_status status={@status} message={@message} />
-```
-
-Shows connection/streaming status indicator.
-
-**Attributes:**
-- `status` - `:idle`, `:connecting`, `:streaming`, `:done`, `:error`
-- `message` - Optional status message
 
 ## Testing with Stubs
 
-WishSdk uses **Knigge** for behavior delegation, following the same pattern as your Wish project.
-
-The stub has the **exact same API** as the real client - no special parameters needed!
+WishSdk uses **Knigge** for behavior delegation, making it easy to stub API calls in tests without needing actual API connections.
 
 ### Configuration
 
-Configure the stub implementation in your test config:
+Enable stubs in your test configuration:
 
 ```elixir
 # config/test.exs
@@ -322,26 +220,27 @@ config :wish_sdk, WishSdk.Api, WishSdk.Api.Stub
 
 Once configured, **all** `WishSdk` calls automatically use the stub!
 
-### Configuring Stub Responses
+### Basic Usage
 
 ```elixir
+# In your tests
 setup do
-  # Set response for specific prompt slug
-  WishSdk.Api.Stub.set_response("test-prompt", "Mocked response")
+  # Configure stub response for specific prompt
+  WishSdk.Api.Stub.set_response("medical-summary", "Mocked response")
   
-  # Set streaming chunks
-  WishSdk.Api.Stub.set_stream("stream-prompt", ["Hello", " ", "world"])
+  # Configure streaming chunks
+  WishSdk.Api.Stub.set_stream("patient-onboarding", ["Hello", " ", "world"])
   
   :ok
 end
 
-test "uses configured response" do
-  {:ok, response} = WishSdk.invoke("test-prompt")
+test "handles invoke response" do
+  {:ok, response} = WishSdk.invoke("medical-summary")
   assert response == "Mocked response"
 end
 
-test "uses configured stream" do
-  {:ok, _task} = WishSdk.stream("stream-prompt",
+test "handles streaming" do
+  {:ok, _task} = WishSdk.stream("patient-onboarding",
     on_chunk: fn chunk -> send(self(), {:chunk, chunk}) end
   )
   
@@ -351,36 +250,22 @@ test "uses configured stream" do
 end
 ```
 
-### Global Configuration
-
-You can also configure default responses in config:
-
-```elixir
-# config/test.exs
-config :wish_sdk, :stub_responses, %{
-  "default-prompt" => "Default response",
-  "medical-summary" => "**Medical Summary**\n\nDefault data"
-}
-
-config :wish_sdk, :stub_streams, %{
-  "stream-prompt" => {["Chunk ", "1", ", ", "Chunk ", "2"], 100}
-}
-```
-
 ### Configuration Helpers
 
 ```elixir
-# Configure per-test
+# Set invoke response for a prompt
 WishSdk.Api.Stub.set_response(slug, response)
+
+# Set stream chunks with delay
 WishSdk.Api.Stub.set_stream(slug, chunks, chunk_delay: 100)
 
-# Clear all configurations
+# Clear all stub configurations
 WishSdk.Api.Stub.clear()
 ```
 
 ### Using Stubs with Tasks
 
-**Important:** Stub configuration is stored in the **process dictionary**, which is per-process!
+**Important:** Stub configuration uses the process dictionary, which is per-process!
 
 When using `Task.async`, configure the stub **inside** the task:
 
@@ -392,7 +277,6 @@ def handle_event("invoke", _params, socket) do
     # Configure stub INSIDE the task
     WishSdk.Api.Stub.set_response("my-prompt", "Mocked response")
     
-    # Now this will use the stub
     case WishSdk.invoke("my-prompt") do
       {:ok, response} -> send(liveview_pid, {:done, response})
       {:error, error} -> send(liveview_pid, {:error, error})
@@ -403,161 +287,200 @@ def handle_event("invoke", _params, socket) do
 end
 ```
 
-### Using Stubs in Production Demos
+### Global Configuration
 
-For showcase pages that should always use stubs (even in production), call the stub directly:
-
-```elixir
-defmodule MyAppWeb.DemoLive do
-  @moduledoc """
-  Demo page that uses stubs to work without a real API.
-  """
-  
-  def handle_event("demo", _params, socket) do
-    liveview_pid = self()
-    
-    Task.async(fn ->
-      # Configure stub inside task
-      WishSdk.Api.Stub.set_response("demo", "Mock response")
-      
-      # Call stub directly (not WishSdk)
-      case WishSdk.Api.Stub.invoke("demo") do
-        {:ok, response} -> send(liveview_pid, {:done, response})
-      end
-    end)
-    
-    {:noreply, socket}
-  end
-end
-```
-
-This keeps your demo working everywhere, while other pages use the real `WishSdk.invoke/2`.
-
-### Predefined Presets
+You can also configure default responses in your config:
 
 ```elixir
-# Use presets for common scenarios
-config = WishSdk.Api.Stub.preset(:progressive_stream)
-WishSdk.Api.Stub.stream(prompt, config)
+# config/test.exs
+config :wish_sdk, :stub_responses, %{
+  "default-prompt" => "Default response",
+  "medical-summary" => "**Medical Summary**\n\nDefault medical data"
+}
 
-# Available presets:
-# - :quick_response (invoke)
-# - :slow_response (invoke)
-# - :medical_summary (stream)
-# - :progressive_stream (stream)
-# - :fast_stream (stream)
-# - :error_timeout (error)
-
-# Override preset values
-config = WishSdk.Api.Stub.preset(:quick_response, 
-  content: "Custom content",
-  delay: 500
-)
+config :wish_sdk, :stub_streams, %{
+  "stream-prompt" => {["Chunk ", "1", ", ", "Chunk ", "2"], 100}
+}
 ```
 
-### LiveView Testing
+### Benefits of Stub Pattern
 
-```elixir
-# In test_helper.exs
-config :wish_sdk, WishSdk.Api, WishSdk.Api.Stub
+- ✅ **No mocking libraries needed** - Knigge handles delegation
+- ✅ **Environment-based** - Automatic based on `MIX_ENV`
+- ✅ **Compile-time safe** - Behavior ensures all callbacks implemented
+- ✅ **Same API** - Stub has identical interface to real client
+- ✅ **Configurable** - Per-test or global configuration
 
-test "streaming updates response", %{conn: conn} do
-  {:ok, view, _html} = live(conn, "/stream")
-  
-  # Trigger streaming (uses stub automatically)
-  view
-  |> element("button", "Start Stream")
-  |> render_click()
-  
-  # Verify UI updates
-  assert render(view) =~ "streaming"
-end
+
+## API Reference
+
+### Core Functions
+
+#### `WishSdk.invoke/2`
+
+Invoke a BetterPrompt and get the complete response.
+
+**Options:**
+- `:context_variables` - Map of required context variables
+- `:user_prompt` - User prompt text (if prompt is not frozen)
+- `:api_url` - Override configured API URL
+- `:timeout` - Request timeout in ms (default: 30000)
+
+#### `WishSdk.stream/2`
+
+Stream a BetterPrompt response with real-time chunks.
+
+**Options:**
+- `:context_variables` - Map of required context variables
+- `:user_prompt` - User prompt text (if prompt is not frozen)
+- `:on_chunk` - Callback for each chunk: `fn chunk -> ... end`
+- `:on_done` - Callback when complete: `fn full_response -> ... end`
+- `:on_error` - Callback on error: `fn error -> ... end`
+- `:on_connected` - Callback when connected: `fn -> ... end`
+- `:api_url` - Override configured API URL
+
+#### `WishSdk.fetch_schema/1`
+
+Fetch schemas for all available prompts.
+
+#### `WishSdk.fetch_prompt_schema/2`
+
+Fetch schema for a specific prompt by slug.
+
+### Mix Tasks
+
+#### `mix wish.gen.prompts`
+
+Generates type-safe Ecto modules for all published BetterPrompts.
+
+**Options:**
+- `--api-url` - Override API URL
+- `--output-dir` - Output directory (default: `lib/prompts`)
+- `--module-prefix` - Module prefix (default: `YourApp.Prompts`)
+
+**Example:**
+```bash
+mix wish.gen.prompts --output-dir lib/my_app/prompts --module-prefix MyApp.Prompts
 ```
 
-### Architecture
+## Components
 
-Following the Knigge pattern from your Wish project:
+### `<.wish_prompt />`
 
-- **`WishSdk.Api`** - Behavior module (uses Knigge)
-- **`WishSdk.Api.Client`** - Real HTTP client implementation (default)
-- **`WishSdk.Api.Stub`** - Test stub implementation
+Interactive prompt component with streaming support.
 
-All calls through `WishSdk.invoke/2` and `WishSdk.stream/2` delegate to `WishSdk.Api`, which routes to the configured implementation.
+**Attributes:**
+- `slug` (required) - BetterPrompt slug
+- `context_variables` - Context variables map
+- `user_prompt` - User prompt text
+- `streaming` - Enable streaming (default: true)
+- `auto_invoke` - Auto-invoke on mount (default: false)
+- `show_input` - Show input field (default: false)
 
-## Error Handling
+**Events:**
+- `phx-chunk` - Fired for each chunk
+- `phx-done` - Fired when complete
+- `phx-error` - Fired on error
+- `phx-connected` - Fired when connected
 
-```elixir
-case WishSdk.invoke(prompt) do
-  {:ok, response} -> 
-    {:ok, response}
-    
-  {:error, %{status: 404}} -> 
-    {:error, :not_found}
-    
-  {:error, %{status: 400, message: msg}} -> 
-    {:error, msg}
-    
-  {:error, %{status: :connection_error}} -> 
-    {:error, :connection_failed}
-end
-```
+### `<.wish_response />`
 
-## Common Patterns
+Display formatted responses.
 
-### Batch Processing
+**Attributes:**
+- `content` (required) - Response content
+- `format` - Content format: "text", "markdown", "html"
+- `loading` - Show loading state
 
-```elixir
-["123", "456", "789"]
-|> Task.async_stream(fn id ->
-  %MyPrompt{id: id} |> WishSdk.invoke()
-end, max_concurrency: 5)
-|> Enum.to_list()
-```
+### `<.wish_status />`
 
-### With Custom Validation
+Show connection and streaming status.
 
-```elixir
-# Add custom validation to generated module's changeset
-def changeset(struct, params) do
-  struct
-  |> cast(params, [:case_id, :document_id])
-  |> validate_required([:case_id, :document_id])
-  |> validate_format(:case_id, ~r/^CASE-\d+$/)
-end
+**Attributes:**
+- `status` - Current status: `:idle`, `:connecting`, `:streaming`, `:done`, `:error`
+- `message` - Optional status message
 
-# Then use .new() for validation
-case MyPrompt.new(params) do
-  {:ok, prompt} -> WishSdk.invoke(prompt)
-  {:error, changeset} -> {:error, format_errors(changeset)}
-end
-```
+## Development & Showcase
 
-### Progress Tracking
+This repository includes `wish_sdk_development`, a Phoenix application that showcases all SDK features with interactive examples and documentation.
 
-```elixir
-chars = 0
-
-WishSdk.stream(prompt,
-  on_chunk: fn chunk ->
-    chars = chars + String.length(chunk)
-    IO.write("#{chars} chars received\r")
-  end,
-  on_done: fn _ -> IO.puts("\nComplete!") end
-)
-```
-
-## Development
-
-Run the showcase application:
+To run the showcase:
 
 ```bash
 cd wish_sdk_development
 mix deps.get
+mix ecto.setup
 iex -S mix phx.server
 ```
 
-Visit http://localhost:4001
+Visit http://localhost:4000
+
+## Error Handling
+
+The SDK provides consistent error handling:
+
+```elixir
+case WishSdk.invoke("my-prompt", context_variables: %{}) do
+  {:ok, response} -> 
+    IO.puts("Success: #{response}")
+    
+  {:error, %{status: 404, message: msg}} -> 
+    IO.puts("Prompt not found: #{msg}")
+    
+  {:error, %{status: 400, message: msg}} -> 
+    IO.puts("Bad request: #{msg}")
+    
+  {:error, %{status: :connection_error, message: msg}} -> 
+    IO.puts("Connection failed: #{msg}")
+end
+```
+
+## Examples
+
+Check out the `wish_sdk_development/` directory for comprehensive examples including:
+
+- Basic invocation patterns
+- Streaming with different callbacks
+- LiveView integration examples
+- Error handling patterns
+- Generated module usage
+- Context variable validation
+
+## Architecture
+
+```
+┌─────────────────┐
+│   Your App      │
+└────────┬────────┘
+         │
+         ├─────────────────┐
+         │                 │
+┌────────▼─────────┐  ┌───▼──────────────┐
+│  WishSdk.invoke  │  │  WishSdk.stream  │
+└────────┬─────────┘  └───┬──────────────┘
+         │                 │
+┌────────▼─────────────────▼────────┐
+│      WishSdk.Client               │
+│  (HTTP + SSE handling)            │
+└────────┬──────────────────────────┘
+         │
+┌────────▼──────────┐
+│   Wish API        │
+│  /api/better-     │
+│   prompt/:slug/   │
+│   invoke|stream   │
+└───────────────────┘
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
 MIT
+## Links
+
+- [Wish Documentation](https://github.com/yourusername/wish)
+- [BetterPrompt Concept](https://github.com/yourusername/wish)
+- [API Documentation](https://hexdocs.pm/wish_sdk)

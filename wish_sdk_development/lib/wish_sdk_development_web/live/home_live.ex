@@ -11,6 +11,9 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
     ~H"""
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="text-center mb-12">
+        <div class="flex justify-center mb-6">
+          <img src={~p"/images/logo.svg"} alt="WishSdk Logo" class="h-32 w-auto" />
+        </div>
         <h1 class="text-5xl font-bold text-gray-900 mb-4">
           WishSdk
         </h1>
@@ -19,7 +22,7 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
         </p>
         <div class="flex justify-center space-x-4">
           <a
-            href="https://github.com/yourusername/wish-sdk"
+            href="https://github.com/betterdoc-org/wish-sdk"
             class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
           >
             View on GitHub
@@ -141,22 +144,7 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
         </div>
       </div>
 
-      <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 class="text-lg font-semibold mb-2 text-blue-900">💡 Configuration Note</h3>
-        <p class="text-blue-800 mb-2">
-          These examples require a running Wish instance. Configure the API URL and platform token in <code class="bg-blue-100 px-2 py-1 rounded">config/config.exs</code>:
-        </p>
-        <pre class="bg-blue-100 text-blue-900 px-3 py-2 rounded text-sm"><code>config :wish_sdk,
-    api_url: "https://your-wish-instance.com",
-    api_token: "your-platform-token"  # Optional</code></pre>
-        <p class="text-blue-800 mt-2 text-sm">
-          Token is sent as
-          <code class="bg-blue-100 px-2 py-1 rounded">x-platform-internal-call-token</code>
-          header.
-          Or use env vars: <code class="bg-blue-100 px-2 py-1 rounded">WISH_API_URL</code>
-          and <code class="bg-blue-100 px-2 py-1 rounded">WISH_API_TOKEN</code>
-        </p>
-      </div>
+      
     </div>
     """
   end

@@ -59,7 +59,8 @@ defmodule WishSdk.MixProject do
 
   defp description do
     """
-    Elixir SDK for integrating BetterPrompt AI capabilities with LiveView components.
+    Elixir SDK for integrating BetterPrompt AI with type-safe modules, LiveView components,
+    and built-in test stubs for seamless development and testing.
     """
   end
 

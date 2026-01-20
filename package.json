@@ -5,7 +5,7 @@
   "main": "lib/hooks.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/wish-sdk.git"
+    "url": "https://github.com/betterdoc-org/wish-sdk.git"
   },
   "keywords": [
     "elixir",

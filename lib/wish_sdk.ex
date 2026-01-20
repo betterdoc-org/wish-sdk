@@ -97,6 +97,47 @@ defmodule WishSdk do
         document_id: "456"
       }
       |> WishSdk.invoke()
+
+  ## Testing with Stubs
+
+  WishSdk uses **Knigge** for behavior delegation, making testing easy without a real API:
+
+      # config/test.exs
+      config :wish_sdk, WishSdk.Api, WishSdk.Api.Stub
+
+  In your tests:
+
+      setup do
+        WishSdk.Api.Stub.set_response("medical-summary", "Mocked response")
+        WishSdk.Api.Stub.set_stream("patient-onboarding", ["Hello", " ", "world"])
+        :ok
+      end
+
+      test "handles invoke" do
+        {:ok, response} = WishSdk.invoke("medical-summary")
+        assert response == "Mocked response"
+      end
+
+      test "handles streaming" do
+        {:ok, _task} = WishSdk.stream("patient-onboarding",
+          on_chunk: fn chunk -> send(self(), {:chunk, chunk}) end
+        )
+        assert_receive {:chunk, "Hello"}
+      end
+
+  Configuration helpers:
+
+      WishSdk.Api.Stub.set_response(slug, response)
+      WishSdk.Api.Stub.set_stream(slug, chunks, chunk_delay: 100)
+      WishSdk.Api.Stub.clear()
+
+  **Important:** Stub configuration is per-process. When using `Task.async`, configure
+  the stub inside the task:
+
+      Task.async(fn ->
+        WishSdk.Api.Stub.set_response("prompt", "Response")
+        WishSdk.invoke("prompt")
+      end)
   """
 
   defmacro __using__(_) do
