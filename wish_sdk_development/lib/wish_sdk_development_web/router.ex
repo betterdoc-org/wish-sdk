@@ -20,6 +20,7 @@ defmodule WishSdkDevelopmentWeb.Router do
     live "/", HomeLive
     live "/examples/invoke", Examples.InvokeLive
     live "/examples/stream", Examples.StreamLive
+    live "/examples/live-prompt", Examples.LivePromptLive
     live "/examples/components", Examples.ComponentsLive
     live "/examples/generated", Examples.GeneratedLive
   end

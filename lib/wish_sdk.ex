@@ -51,7 +51,24 @@ defmodule WishSdk do
 
   ### LiveView Integration
 
-  All logic stays in your LiveView process:
+  #### High-Level (Zero Boilerplate) ⭐ Recommended
+
+  Use the self-managing `LivePrompt` component for the simplest integration:
+
+      # Just pass the slug and context - that's it!
+      <.live_component
+        module={WishSdk.Components.LivePrompt}
+        id="my-prompt"
+        slug="medical-summary"
+        context_variables={%{case_id: "123"}}
+        auto_start={true}
+      />
+
+  The component handles all state, callbacks, and message handling internally.
+
+  #### Low-Level (Manual Control)
+
+  For complex scenarios, use the low-level API with manual state management:
 
       def handle_event("invoke", _params, socket) do
         socket = assign(socket, response: "", status: :streaming)
@@ -81,6 +98,7 @@ defmodule WishSdk do
   Available components:
   - `wish_response` - Display responses with status, streaming, and error handling
   - `wish_status` - Show connection status indicators
+  - `WishSdk.Components.LivePrompt` - Self-managing LiveComponent (zero boilerplate!)
 
   ### Optional JavaScript Hooks
 

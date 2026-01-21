@@ -116,9 +116,22 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
             navigate={~p"/examples/stream"}
             class="block bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
           >
-            <h3 class="text-xl font-semibold mb-2">Stream API</h3>
+            <h3 class="text-xl font-semibold mb-2">Stream API (Low-Level)</h3>
             <p class="text-gray-600">
-              Real-time streaming with callbacks and progress
+              Real-time streaming with manual callbacks and state management
+            </p>
+          </.link>
+
+          <.link
+            navigate={~p"/examples/live-prompt"}
+            class="block bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow text-white"
+          >
+            <div class="flex items-center justify-between mb-2">
+              <h3 class="text-xl font-semibold">LivePrompt Component</h3>
+              <span class="px-2 py-1 bg-white text-blue-600 text-xs font-bold rounded">NEW!</span>
+            </div>
+            <p class="text-blue-100">
+              🎉 Zero-boilerplate streaming with self-managing component
             </p>
           </.link>
 
@@ -126,9 +139,9 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
             navigate={~p"/examples/components"}
             class="block bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
           >
-            <h3 class="text-xl font-semibold mb-2">LiveView Components</h3>
+            <h3 class="text-xl font-semibold mb-2">Display Components</h3>
             <p class="text-gray-600">
-              Pre-built UI components for interactive prompts
+              Pre-built UI components for displaying AI responses
             </p>
           </.link>
 
@@ -144,7 +157,7 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
         </div>
       </div>
 
-      
+
     </div>
     """
   end
