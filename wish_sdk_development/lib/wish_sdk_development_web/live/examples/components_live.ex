@@ -147,7 +147,6 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
         <code class="bg-gray-100 px-2 py-1 rounded mx-1">wish_status</code>
       </p>
 
-
       <div class="space-y-4 mb-8">
         <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
           <p class="text-purple-800">
@@ -170,10 +169,10 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
 
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
             <div class="space-y-6">
-            <!-- LiveView Code -->
-            <div>
-              <h3 class="text-lg font-semibold mb-3">LiveView Code:</h3>
-              <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
+              <!-- LiveView Code -->
+              <div>
+                <h3 class="text-lg font-semibold mb-3">LiveView Code:</h3>
+                <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
                 # In your LiveView module
                 alias MyApp.Prompts.MedicalSummary
 
@@ -208,12 +207,11 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                   {:noreply, assign(socket, response: "", status: :error)}
                 end
               </code></pre>
-            </div>
-
-            <!-- HEEx Template -->
-            <div>
-              <h3 class="text-lg font-semibold mb-3">HEEx Template:</h3>
-              <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
+              </div>
+              <!-- HEEx Template -->
+              <div>
+                <h3 class="text-lg font-semibold mb-3">HEEx Template:</h3>
+                <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
                 &lt;!-- In your .heex template --&gt;
                 &lt;.wish_response
                   content={@response}
@@ -228,9 +226,8 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                   loading={@status == :connecting}
                 /&gt;
               </code></pre>
+              </div>
             </div>
-            </div>
-
             <!-- Live Demo -->
             <div>
               <h3 class="text-lg font-semibold mb-3">Live Demo:</h3>
@@ -246,7 +243,6 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
             </div>
           </div>
         </div>
-
         <!-- Response Component - Stream Example -->
         <div>
           <h2 class="text-2xl font-semibold mb-4">2. Response Component - Stream Pattern</h2>
@@ -298,7 +294,6 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 end
               </code></pre>
               </div>
-
               <!-- HEEx Template -->
               <div>
                 <h3 class="text-lg font-semibold mb-3">HEEx Template:</h3>
@@ -321,7 +316,6 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
               </code></pre>
               </div>
             </div>
-
             <!-- Live Demo -->
             <div>
               <h3 class="text-lg font-semibold mb-3">Live Demo:</h3>
@@ -332,7 +326,12 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 >
                   Start Stream Demo
                 </button>
-                <.wish_response content={@stream_response} status={@stream_status} show_status={true} auto_scroll={true} />
+                <.wish_response
+                  content={@stream_response}
+                  status={@stream_status}
+                  show_status={true}
+                  auto_scroll={true}
+                />
               </div>
             </div>
           </div>

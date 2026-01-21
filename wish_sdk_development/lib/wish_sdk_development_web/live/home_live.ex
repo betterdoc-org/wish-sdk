@@ -156,8 +156,6 @@ defmodule WishSdkDevelopmentWeb.HomeLive do
           </.link>
         </div>
       </div>
-
-
     </div>
     """
   end

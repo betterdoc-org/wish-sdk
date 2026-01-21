@@ -103,7 +103,8 @@ defmodule WishSdkDevelopmentWeb.Examples.StubUsageTest do
       Task.async(fn ->
         # Configure stub inside the Task (process dictionary is per-process)
         Stub.set_response("liveview-test", "LiveView response")
-        Process.sleep(10)  # Simulate delay
+        # Simulate delay
+        Process.sleep(10)
 
         case WishSdk.invoke("liveview-test") do
           {:ok, response} -> send(test_pid, {:invoke_done, response})

@@ -1,6 +1,7 @@
 defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
   use WishSdkDevelopmentWeb, :live_view
-  use WishSdk.Components.LivePromptHelper  # <- ONE LINE enables LivePrompt components!
+  # <- ONE LINE enables LivePrompt components!
+  use WishSdk.Components.LivePromptHelper
 
   @impl true
   def mount(_params, _session, socket) do
@@ -65,21 +66,14 @@ defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
       <h1 class="text-4xl font-bold mb-4">LivePrompt Component</h1>
       <p class="text-gray-600 mb-8">
         <strong>Zero boilerplate!</strong>
-        The
-        <code class="bg-gray-100 px-2 py-1 rounded">WishSdk.Components.LivePrompt</code>
+        The <code class="bg-gray-100 px-2 py-1 rounded">WishSdk.Components.LivePrompt</code>
         component handles all state and message management internally.
       </p>
-
       <!-- Comparison Banner -->
       <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-8">
         <div class="flex items-start space-x-4">
           <div class="flex-shrink-0">
-            <svg
-              class="w-8 h-8 text-blue-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -122,7 +116,6 @@ defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
           </div>
         </div>
       </div>
-
       <!-- Example 1: Auto-start -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">1. Auto-Start (Simplest)</h2>
@@ -134,12 +127,12 @@ defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
           <div>
             <h3 class="font-semibold mb-2">Code:</h3>
             <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>&lt;.live_component
-  module={WishSdk.Components.LivePrompt}
-  id="auto-prompt"
-  slug="<%= @slug %>"
-  context_variables={%{"case_id" => "123"}}
-  auto_start={true}
-/&gt;</code></pre>
+    module={WishSdk.Components.LivePrompt}
+    id="auto-prompt"
+    slug="<%= @slug %>"
+    context_variables={%{"case_id" => "123"}}
+    auto_start={true}
+    /&gt;</code></pre>
           </div>
 
           <div>
@@ -155,7 +148,6 @@ defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
           </div>
         </div>
       </div>
-
       <!-- Example 2: Manual Control -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">2. Manual Control</h2>
@@ -167,21 +159,21 @@ defmodule WishSdkDevelopmentWeb.Examples.LivePromptLive do
           <div>
             <h3 class="font-semibold mb-2">Code:</h3>
             <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>&lt;button phx-click="start_prompt" phx-value-id="manual-prompt"&gt;
-  Generate Summary
-&lt;/button&gt;
+    Generate Summary
+    &lt;/button&gt;
 
-&lt;.live_component
-  module={WishSdk.Components.LivePrompt}
-  id="manual-prompt"
-  slug="<%= @slug %>"
-  context_variables={%{"case_id" => "456"}}
-/&gt;
+    &lt;.live_component
+    module={WishSdk.Components.LivePrompt}
+    id="manual-prompt"
+    slug="<%= @slug %>"
+    context_variables={%{"case_id" => "456"}}
+    /&gt;
 
-# In LiveView:
-def handle_event("start_prompt", %{"id" => id}, socket) do
-  send_update(WishSdk.Components.LivePrompt, id: id, action: :start)
-  {:noreply, socket}
-end</code></pre>
+    # In LiveView:
+    def handle_event("start_prompt", %{"id" => id}, socket) do
+    send_update(WishSdk.Components.LivePrompt, id: id, action: :start)
+    {:noreply, socket}
+    end</code></pre>
           </div>
 
           <div>
@@ -205,7 +197,6 @@ end</code></pre>
           </div>
         </div>
       </div>
-
       <!-- Example 3: With Completion Callback -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">3. Completion Callback</h2>
@@ -217,20 +208,20 @@ end</code></pre>
           <div>
             <h3 class="font-semibold mb-2">Code:</h3>
             <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>&lt;.live_component
-  module={WishSdk.Components.LivePrompt}
-  id="callback-prompt"
-  slug="<%= @slug %>"
-  context_variables={%{"case_id" => "789"}}
-  on_complete={fn response ->
+    module={WishSdk.Components.LivePrompt}
+    id="callback-prompt"
+    slug="<%= @slug %>"
+    context_variables={%{"case_id" => "789"}}
+    on_complete={fn response ->
     send(self(), {:ai_complete, response})
-  end}
-/&gt;
+    end}
+    /&gt;
 
-# In LiveView:
-def handle_info({:ai_complete, response}, socket) do
-  # Save to DB, update state, etc.
-  {:noreply, put_flash(socket, :info, "Saved!")}
-end</code></pre>
+    # In LiveView:
+    def handle_info({:ai_complete, response}, socket) do
+    # Save to DB, update state, etc.
+    {:noreply, put_flash(socket, :info, "Saved!")}
+    end</code></pre>
 
             <div :if={@saved_response} class="mt-4 p-3 bg-green-50 border border-green-200 rounded">
               <div class="font-semibold text-green-800 text-sm">
@@ -264,7 +255,6 @@ end</code></pre>
           </div>
         </div>
       </div>
-
       <!-- Example 4: Multiple Prompts -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">4. Multiple Prompts (Parallel)</h2>
@@ -319,7 +309,6 @@ end</code></pre>
           </div>
         </div>
       </div>
-
       <!-- Example 5: Invoke Mode (Non-Streaming) -->
       <div class="mb-12">
         <h2 class="text-2xl font-semibold mb-4">5. Invoke Mode (Non-Streaming)</h2>
@@ -332,12 +321,12 @@ end</code></pre>
           <div>
             <h3 class="font-semibold mb-2">Code:</h3>
             <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>&lt;.live_component
-  module={WishSdk.Components.LivePrompt}
-  id="invoke-prompt"
-  slug="<%= @slug %>"
-  context_variables={%{"case_id" => "999"}}
-  mode={:invoke}
-/&gt;</code></pre>
+    module={WishSdk.Components.LivePrompt}
+    id="invoke-prompt"
+    slug="<%= @slug %>"
+    context_variables={%{"case_id" => "999"}}
+    mode={:invoke}
+    /&gt;</code></pre>
           </div>
 
           <div>
@@ -362,7 +351,6 @@ end</code></pre>
           </div>
         </div>
       </div>
-
       <!-- When to Use Low-Level API -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
         <h2 class="text-xl font-semibold text-yellow-900 mb-3">
@@ -377,27 +365,23 @@ end</code></pre>
         </p>
         <ul class="text-gray-700 space-y-2 ml-6 list-disc">
           <li>
-            <strong>Complex state coordination</strong>
-            - Multiple prompts affecting shared state
+            <strong>Complex state coordination</strong> - Multiple prompts affecting shared state
           </li>
           <li>
-            <strong>Custom message handling</strong>
-            - Special logic for each chunk/event
+            <strong>Custom message handling</strong> - Special logic for each chunk/event
           </li>
           <li>
             <strong>Integration with existing systems</strong>
             - Broadcasting to channels, real-time updates to multiple clients
           </li>
           <li>
-            <strong>Fine-grained control</strong>
-            - Cancellation, retry logic, custom error recovery
+            <strong>Fine-grained control</strong> - Cancellation, retry logic, custom error recovery
           </li>
         </ul>
         <p class="text-gray-700 mt-3">
           For simple "invoke and display" use cases, this high-level component is perfect! 🎯
         </p>
       </div>
-
       <!-- API Reference -->
       <div class="bg-gray-50 border border-gray-200 rounded-lg p-6">
         <h2 class="text-xl font-semibold mb-3">📚 Component API Reference</h2>
@@ -405,14 +389,12 @@ end</code></pre>
         <div class="space-y-4 text-sm">
           <div>
             <code class="bg-gray-900 text-gray-100 px-2 py-1 rounded">id</code>
-            <span class="text-red-600 ml-2">required</span>
-            - Unique component ID
+            <span class="text-red-600 ml-2">required</span> - Unique component ID
           </div>
 
           <div>
             <code class="bg-gray-900 text-gray-100 px-2 py-1 rounded">slug</code>
-            or
-            <code class="bg-gray-900 text-gray-100 px-2 py-1 rounded">prompt</code>
+            or <code class="bg-gray-900 text-gray-100 px-2 py-1 rounded">prompt</code>
             <span class="text-red-600 ml-2">required</span>
             - Prompt slug or struct
           </div>
@@ -424,7 +406,8 @@ end</code></pre>
 
           <div>
             <code class="bg-gray-900 text-gray-100 px-2 py-1 rounded">mode</code>
-            - <code>:stream</code> (default) or <code>:invoke</code>
+            - <code>:stream</code>
+            (default) or <code>:invoke</code>
           </div>
 
           <div>
@@ -466,13 +449,13 @@ end</code></pre>
         <div class="mt-6">
           <h3 class="font-semibold mb-2">Programmatic Control:</h3>
           <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code># Start
-send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :start)
+    send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :start)
 
-# Cancel
-send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :cancel)
+    # Cancel
+    send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :cancel)
 
-# Reset
-send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :reset)</code></pre>
+    # Reset
+    send_update(WishSdk.Components.LivePrompt, id: "my-prompt", action: :reset)</code></pre>
         </div>
       </div>
     </div>
