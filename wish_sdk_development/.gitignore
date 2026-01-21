@@ -44,3 +44,5 @@ npm-debug.log
 .DS_Store
 
 /lib/wish_prompts/
+
+/assets/vendor/wish_sdk_hooks.js

@@ -4,7 +4,8 @@ import "phoenix_html"
 import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import topbar from "../vendor/topbar"
-import WishHooks from "../vendor/wish_hooks.js"
+// WishSdk hooks (copied from deps/wish_sdk/priv/static/wish_sdk_hooks.js)
+import WishHooks from "../vendor/wish_sdk_hooks"
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {

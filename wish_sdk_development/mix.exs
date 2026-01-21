@@ -45,9 +45,11 @@ defmodule WishSdkDevelopment.MixProject do
   defp aliases do
     [
       setup: ["deps.get", "assets.setup", "assets.build"],
+      "deps.get": ["deps.get", "copy.hooks"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["tailwind default", "esbuild default"],
-      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"],
+      "copy.hooks": ["cmd cp ../priv/static/wish_sdk_hooks.js assets/vendor/"]
     ]
   end
 end

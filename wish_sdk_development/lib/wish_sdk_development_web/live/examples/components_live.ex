@@ -142,9 +142,8 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
 
       <h1 class="text-4xl font-bold mb-4">LiveView Components Example</h1>
       <p class="text-gray-600 mb-8">
-        WishSdk provides 3 pre-built LiveView components:
+        WishSdk provides 2 pre-built LiveView components:
         <code class="bg-gray-100 px-2 py-1 rounded mx-1">wish_response</code>
-        <code class="bg-gray-100 px-2 py-1 rounded mx-1">wish_prompt</code>
         <code class="bg-gray-100 px-2 py-1 rounded mx-1">wish_status</code>
       </p>
 
@@ -162,9 +161,9 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
       </div>
 
       <div class="space-y-12">
-        <!-- Prompt Component - Invoke Example -->
+        <!-- Response Component - Invoke Example -->
         <div>
-          <h2 class="text-2xl font-semibold mb-4">1. Prompt Component - Invoke Pattern</h2>
+          <h2 class="text-2xl font-semibold mb-4">1. Response Component - Invoke Pattern</h2>
           <p class="text-gray-600 mb-4">
             Simple one-shot request/response pattern. Perfect for non-streaming use cases.
           </p>
@@ -216,12 +215,13 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
               <h3 class="text-lg font-semibold mb-3">HEEx Template:</h3>
               <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
                 &lt;!-- In your .heex template --&gt;
-                &lt;.wish_prompt
-                  response={@response}
+                &lt;.wish_response
+                  content={@response}
                   status={@status}
+                  show_status={true}
                 /&gt;
 
-                &lt;!-- Or use wish_response for more control --&gt;
+                &lt;!-- Or compose manually for more control --&gt;
                 &lt;.wish_status status={@status} /&gt;
                 &lt;.wish_response
                   content={@response}
@@ -241,15 +241,15 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 >
                   Start Invoke Demo
                 </button>
-                <.wish_prompt response={@invoke_response} status={@invoke_status} />
+                <.wish_response content={@invoke_response} status={@invoke_status} show_status={true} />
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Prompt Component - Stream Example -->
+        <!-- Response Component - Stream Example -->
         <div>
-          <h2 class="text-2xl font-semibold mb-4">2. Prompt Component - Stream Pattern</h2>
+          <h2 class="text-2xl font-semibold mb-4">2. Response Component - Stream Pattern</h2>
           <p class="text-gray-600 mb-4">
             Real-time streaming with progressive response updates. Great for LLM interactions.
           </p>
@@ -304,9 +304,10 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 <h3 class="text-lg font-semibold mb-3">HEEx Template:</h3>
                 <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code>
                 &lt;!-- In your .heex template --&gt;
-                &lt;.wish_prompt
-                  response={@response}
+                &lt;.wish_response
+                  content={@response}
                   status={@status}
+                  show_status={true}
                   auto_scroll={true}
                 /&gt;
 
@@ -331,7 +332,7 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 >
                   Start Stream Demo
                 </button>
-                <.wish_prompt response={@stream_response} status={@stream_status} auto_scroll={true} />
+                <.wish_response content={@stream_response} status={@stream_status} show_status={true} auto_scroll={true} />
               </div>
             </div>
           </div>
@@ -388,13 +389,13 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
               <div>
                 <h3 class="text-lg font-semibold mb-3">Loading State with Sizes:</h3>
                 <pre class="text-sm bg-gray-900 text-gray-100 p-4 rounded overflow-x-auto"><code># Small
-    .wish_response content="" loading={true} size="small"
+    .wish_response content="" loading={true} loading_size="small"
 
     # Medium (default)
-    .wish_response content="" loading={true} size="medium"
+    .wish_response content="" loading={true} loading_size="medium"
 
     # Large
-    .wish_response content="" loading={true} size="large"</code></pre>
+    .wish_response content="" loading={true} loading_size="large"</code></pre>
               </div>
 
               <div>
@@ -402,15 +403,15 @@ defmodule WishSdkDevelopmentWeb.Examples.ComponentsLive do
                 <div class="border border-gray-300 rounded-lg bg-white space-y-4">
                   <div>
                     <p class="text-xs text-gray-500 mb-2 px-4 pt-4">Small:</p>
-                    <.wish_response content="" loading={true} size="small" />
+                    <.wish_response content="" loading={true} loading_size="small" />
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 mb-2 px-4">Medium (default):</p>
-                    <.wish_response content="" loading={true} size="medium" />
+                    <.wish_response content="" loading={true} loading_size="medium" />
                   </div>
                   <div>
                     <p class="text-xs text-gray-500 mb-2 px-4">Large:</p>
-                    <.wish_response content="" loading={true} size="large" />
+                    <.wish_response content="" loading={true} loading_size="large" />
                   </div>
                 </div>
               </div>

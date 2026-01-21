@@ -67,26 +67,52 @@ defmodule WishSdk.Api.Client do
       |> maybe_add_user_prompt(user_prompt)
       |> Jason.encode!()
 
-    headers =
-      build_headers(opts, [
-        {"content-type", "application/json"},
-        {"accept", "text/event-stream"}
-      ])
+    headers = build_finch_headers(opts)
+
+    request = Finch.build(:post, url, headers, body)
+    initial_state = %{status: nil, error_body: ""}
 
     task =
       Task.async(fn ->
-        case Req.post(url,
-               body: body,
-               headers: headers,
-               into: fn {:data, data}, {req, resp} ->
-                 parse_sse_chunk(data, on_chunk, on_done, on_error, on_connected)
-                 {:cont, {req, resp}}
-               end
-             ) do
-          {:ok, _} ->
+        Finch.stream_while(
+          request,
+          WishSdk.Finch,
+          initial_state,
+          fn
+            {:status, status}, state ->
+              handle_status(status, state, on_error)
+
+            {:headers, _headers}, state ->
+              {:cont, state}
+
+            {:data, data}, %{status: status} = state when status >= 400 ->
+              # Accumulate error body
+              {:cont, %{state | error_body: state.error_body <> data}}
+
+            {:data, data}, %{status: status} = state when status in 200..299 ->
+              # Parse SSE chunks for successful responses
+              parse_sse_chunk(data, on_chunk, on_done, on_error, on_connected)
+              {:cont, state}
+
+            {:data, _data}, state ->
+              {:cont, state}
+          end,
+          # Connection options
+          receive_timeout: 120_000
+        )
+        |> case do
+          {:ok, %{status: status, error_body: error_body}} when status >= 400 ->
+            Logger.debug("Stream HTTP error: status=#{status}, body=#{inspect(error_body)}")
+            error_msg = parse_error_message(error_body)
+            Logger.debug("Parsed error message: #{inspect(error_msg)}")
+            on_error.(%{status: status, message: error_msg})
+            {:error, %{status: status, message: error_msg}}
+
+          {:ok, _state} ->
             :ok
 
           {:error, reason} ->
+            Logger.debug("Stream connection error: #{inspect(reason)}")
             on_error.(%{status: :connection_error, message: inspect(reason)})
             {:error, reason}
         end
@@ -163,6 +189,27 @@ defmodule WishSdk.Api.Client do
     end
   end
 
+  defp build_finch_headers(opts) do
+    base_headers = [
+      {"content-type", "application/json"},
+      {"accept", "text/event-stream"}
+    ]
+
+    case get_api_token(opts) do
+      nil -> base_headers
+      token -> [{"x-platform-internal-call-token", token} | base_headers]
+    end
+  end
+
+  defp handle_status(status, state, _on_error) when status >= 400 do
+    Logger.debug("Stream received error status: #{status}")
+    {:cont, %{state | status: status}}
+  end
+
+  defp handle_status(status, state, _on_error) do
+    {:cont, %{state | status: status}}
+  end
+
   defp build_url(base_url, path) do
     base_url
     |> String.trim_trailing("/")
@@ -172,10 +219,41 @@ defmodule WishSdk.Api.Client do
   defp maybe_add_user_prompt(body, nil), do: body
   defp maybe_add_user_prompt(body, user_prompt), do: Map.put(body, :user_prompt, user_prompt)
 
-  defp parse_error_message(body) when is_binary(body), do: body
-  defp parse_error_message(%{"error" => error}), do: error
-  defp parse_error_message(%{"message" => message}), do: message
-  defp parse_error_message(body), do: inspect(body)
+  defp parse_error_message(body) when is_binary(body) do
+    Logger.debug("parse_error_message received binary: #{inspect(body)}")
+
+    case String.trim(body) do
+      "" ->
+        "Request failed"
+
+      json_string ->
+        # Try to parse as JSON first (for streaming endpoint errors)
+        case Jason.decode(json_string) do
+          {:ok, decoded} ->
+            Logger.debug("Successfully decoded JSON: #{inspect(decoded)}")
+            parse_error_message(decoded)
+
+          {:error, reason} ->
+            Logger.debug("Failed to decode JSON: #{inspect(reason)}, returning raw string")
+            json_string
+        end
+    end
+  end
+
+  defp parse_error_message(%{"error" => error}) when is_binary(error) and error != "" do
+    Logger.debug("Extracted error from map: #{inspect(error)}")
+    error
+  end
+
+  defp parse_error_message(%{"message" => message}) when is_binary(message) and message != "" do
+    Logger.debug("Extracted message from map: #{inspect(message)}")
+    message
+  end
+
+  defp parse_error_message(body) do
+    Logger.debug("No error/message field found in: #{inspect(body)}, using default")
+    "Request failed"
+  end
 
   defp parse_sse_chunk(data, on_chunk, on_done, on_error, on_connected) do
     String.split(data, "\n\n", trim: true)

@@ -12,7 +12,6 @@ defmodule WishSdk.Components do
   defmacro __using__(_) do
     quote do
       import WishSdk.Components.{
-        Prompt,
         Response,
         Status
       }

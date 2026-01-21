@@ -183,7 +183,7 @@ defmodule MyAppWeb.PromptLive do
     ~H"""
     <div>
       <button phx-click="invoke">Generate Summary</button>
-      <.wish_prompt response={@response} status={@status} />
+      <.wish_response content={@response} status={@status} show_status={true} />
     </div>
     """
   end
@@ -194,10 +194,17 @@ end
 
 JavaScript hooks are **optional** and only provide UI enhancements like auto-scrolling. The SDK works perfectly without them!
 
-If you want the optional hooks:
+If you want the optional hooks, copy the JavaScript file to your assets:
+
+```bash
+# Copy hooks from the installed package
+cp deps/wish_sdk/priv/static/wish_sdk_hooks.js assets/vendor/
+```
+
+Then import in your `assets/js/app.js`:
 
 ```javascript
-import WishHooks from "wish-sdk";
+import WishHooks from "../vendor/wish_sdk_hooks";
 
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: WishHooks,  // Optional!
@@ -365,40 +372,53 @@ mix wish.gen.prompts --output-dir lib/my_app/prompts --module-prefix MyApp.Promp
 
 ## Components
 
-### `<.wish_prompt />`
-
-Interactive prompt component with streaming support.
-
-**Attributes:**
-- `slug` (required) - BetterPrompt slug
-- `context_variables` - Context variables map
-- `user_prompt` - User prompt text
-- `streaming` - Enable streaming (default: true)
-- `auto_invoke` - Auto-invoke on mount (default: false)
-- `show_input` - Show input field (default: false)
-
-**Events:**
-- `phx-chunk` - Fired for each chunk
-- `phx-done` - Fired when complete
-- `phx-error` - Fired on error
-- `phx-connected` - Fired when connected
-
 ### `<.wish_response />`
 
-Display formatted responses.
+The main component for displaying AI responses with automatic state management.
 
 **Attributes:**
-- `content` (required) - Response content
-- `format` - Content format: "text", "markdown", "html"
-- `loading` - Show loading state
+- `content` - Response content (default: "")
+- `status` - Status atom: `:idle`, `:connecting`, `:connected`, `:streaming`, `:done`, `:error`
+- `show_status` - Show status indicator above response (default: false)
+- `format` - Content format: "text", "markdown" (default), "html"
+- `loading` - Show loading spinner (overridden by status if set)
+- `streaming` - Show streaming cursor (default: true)
+- `error` - Error message to display
+- `loading_size` - Spinner size: "small", "medium" (default), "large"
+- `empty_message` - Message when content is empty (default: "No content yet")
+- `auto_scroll` - Auto-scroll during updates (default: true)
+- `container_class` - Container CSS classes (default: "max-h-96 overflow-y-auto")
+
+**Examples:**
+```heex
+# Simple usage with status atom
+<.wish_response content={@response} status={@status} show_status={true} />
+
+# With custom empty message
+<.wish_response
+  content={@response}
+  status={@status}
+  empty_message="Click 'Start' to begin"
+/>
+
+# Plain text format
+<.wish_response content={@response} format="text" />
+```
 
 ### `<.wish_status />`
 
-Show connection and streaming status.
+Show connection and streaming status indicator.
 
 **Attributes:**
-- `status` - Current status: `:idle`, `:connecting`, `:streaming`, `:done`, `:error`
-- `message` - Optional status message
+- `status` - Current status: `:idle`, `:connecting`, `:connected`, `:streaming`, `:done`, `:error`
+- `message` - Optional custom status message
+- `class` - Additional CSS classes
+
+**Example:**
+```heex
+<.wish_status status={@status} />
+<.wish_status status={:streaming} message="Generating response..." />
+```
 
 ## Development & Showcase
 

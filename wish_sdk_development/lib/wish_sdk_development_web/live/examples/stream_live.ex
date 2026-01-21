@@ -124,7 +124,7 @@ defmodule WishSdkDevelopmentWeb.Examples.StreamLive do
      socket
      |> assign(:streaming, false)
      |> assign(:status, :error)
-     |> assign(:error, inspect(error))}
+     |> assign(:error, error)}
   end
 
   # Handle Task completion messages
@@ -246,55 +246,17 @@ defmodule WishSdkDevelopmentWeb.Examples.StreamLive do
         </div>
 
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <h2 class="text-2xl font-semibold">Response</h2>
-            <.wish_status status={@status} />
-          </div>
+          <h2 class="text-2xl font-semibold mb-4">Response</h2>
 
-          <%= if @error do %>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 class="text-red-900 font-semibold mb-2">Error</h3>
-              <pre class="text-sm text-red-800 whitespace-pre-wrap"><%= @error %></pre>
-            </div>
-          <% end %>
-
-          <%= if @response != "" do %>
-            <div class="bg-white border border-gray-200 rounded-lg p-6 min-h-[200px] max-h-[500px] overflow-auto">
-              <.wish_response content={@response} streaming={@streaming} auto_scroll={true} />
-            </div>
-          <% else %>
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-gray-500 min-h-[200px] flex items-center justify-center">
-              <%= if @streaming do %>
-                <div class="text-blue-600">
-                  <svg
-                    class="animate-spin h-8 w-8 mx-auto mb-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      class="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      stroke-width="4"
-                    >
-                    </circle>
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    >
-                    </path>
-                  </svg>
-                  <p>Waiting for stream...</p>
-                </div>
-              <% else %>
-                Enter configuration and click "Start Streaming" to see results
-              <% end %>
-            </div>
-          <% end %>
+          <.wish_response
+            content={@response}
+            status={@status}
+            show_status={true}
+            error={@error}
+            loading_size="large"
+            empty_message="Enter configuration and click 'Start Streaming' to see results"
+            class="bg-white border border-gray-200 rounded-lg p-6 min-h-[200px]"
+          />
         </div>
       </div>
     </div>

@@ -23,7 +23,8 @@ defmodule WishSdk.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {WishSdk.Application, []}
     ]
   end
 
@@ -37,6 +38,7 @@ defmodule WishSdk.MixProject do
       {:phoenix_live_view, "~> 0.20 or ~> 1.0"},
       {:jason, "~> 1.4"},
       {:req, "~> 0.4"},
+      {:finch, "~> 0.16"},
       {:ecto, ">= 3.0.0"},
       {:gettext, ">= 0.26.0"},
       {:earmark, "~> 1.4"},

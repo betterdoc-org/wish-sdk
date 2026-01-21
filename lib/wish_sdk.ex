@@ -70,7 +70,7 @@ defmodule WishSdk do
       end
 
       # In your template
-      <.wish_prompt response={@response} status={@status} />
+      <.wish_response content={@response} status={@status} show_status={true} />
 
   ## Components
 
@@ -79,9 +79,19 @@ defmodule WishSdk do
       use WishSdk.Components
 
   Available components:
-  - `wish_prompt` - Display streaming responses with status
-  - `wish_response` - Format AI responses (text/markdown/html)
+  - `wish_response` - Display responses with status, streaming, and error handling
   - `wish_status` - Show connection status indicators
+
+  ### Optional JavaScript Hooks
+
+  For UI enhancements like auto-scrolling (optional):
+
+      # Copy hooks file
+      cp deps/wish_sdk/priv/static/wish_sdk_hooks.js assets/vendor/
+
+      # Import in assets/js/app.js
+      import WishHooks from "../vendor/wish_sdk_hooks";
+      let liveSocket = new LiveSocket("/live", Socket, {hooks: WishHooks})
 
   ## Type-Safe Modules
 
@@ -143,7 +153,6 @@ defmodule WishSdk do
   defmacro __using__(_) do
     quote do
       import WishSdk.Components.{
-        Prompt,
         Response,
         Status
       }

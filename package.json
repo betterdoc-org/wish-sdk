@@ -2,7 +2,7 @@
   "name": "wish-sdk",
   "version": "0.1.0",
   "description": "Elixir SDK for BetterPrompt AI integration",
-  "main": "lib/hooks.js",
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/betterdoc-org/wish-sdk.git"
@@ -14,6 +14,6 @@
     "ai",
     "streaming"
   ],
-  "author": "",
+  "author": "BetterDoc",
   "license": "MIT"
 }

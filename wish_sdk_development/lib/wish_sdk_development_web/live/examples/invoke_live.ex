@@ -8,9 +8,9 @@ defmodule WishSdkDevelopmentWeb.Examples.InvokeLive do
      |> assign(:slug, "")
      |> assign(:context_variables, "{\n  \"case_id\": \"123\"\n}")
      |> assign(:user_prompt, "")
-     |> assign(:response, nil)
-     |> assign(:error, nil)
-     |> assign(:loading, false)}
+     |> assign(:response, "")
+     |> assign(:status, :idle)
+     |> assign(:error, nil)}
   end
 
   @impl true
@@ -21,9 +21,9 @@ defmodule WishSdkDevelopmentWeb.Examples.InvokeLive do
         slug: slug,
         context_variables: context,
         user_prompt: prompt,
-        loading: true,
+        status: :connecting,
         error: nil,
-        response: nil
+        response: ""
       )
 
     # Parse context variables
@@ -55,13 +55,13 @@ defmodule WishSdkDevelopmentWeb.Examples.InvokeLive do
         {:noreply,
          socket
          |> assign(:response, response)
-         |> assign(:loading, false)}
+         |> assign(:status, :done)}
 
       {:error, error} ->
         {:noreply,
          socket
-         |> assign(:error, inspect(error))
-         |> assign(:loading, false)}
+         |> assign(:error, error)
+         |> assign(:status, :error)}
     end
   end
 
@@ -132,10 +132,10 @@ defmodule WishSdkDevelopmentWeb.Examples.InvokeLive do
 
             <button
               type="submit"
-              disabled={@loading}
+              disabled={@status == :connecting}
               class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              <%= if @loading, do: "Invoking...", else: "Invoke Prompt" %>
+              <%= if @status == :connecting, do: "Invoking...", else: "Invoke Prompt" %>
             </button>
           </form>
 
@@ -171,55 +171,16 @@ defmodule WishSdkDevelopmentWeb.Examples.InvokeLive do
         <div>
           <h2 class="text-2xl font-semibold mb-4">Response</h2>
 
-          <%= if @loading do %>
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <div class="flex items-center justify-center space-x-3 text-blue-600">
-                <svg
-                  class="animate-spin h-8 w-8"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    class="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    stroke-width="4"
-                  >
-                  </circle>
-                  <path
-                    class="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  >
-                  </path>
-                </svg>
-                <span class="text-lg font-medium">Waiting for response...</span>
-              </div>
-            </div>
-          <% end %>
-
-          <%= if @error do %>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 class="text-red-900 font-semibold mb-2">Error</h3>
-              <pre class="text-sm text-red-800 whitespace-pre-wrap"><%= @error %></pre>
-            </div>
-          <% end %>
-
-          <%= if @response do %>
-            <div class="bg-white border border-gray-200 rounded-lg p-6">
-              <h3 class="text-lg font-semibold mb-3 text-green-700">✓ Success</h3>
-              <.wish_response content={@response} />
-            </div>
-          <% end %>
-
-          <%= if !@loading and !@error and !@response do %>
-            <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center text-gray-500">
-              Enter configuration and click "Invoke Prompt" to see results
-            </div>
-          <% end %>
+          <.wish_response
+            content={@response}
+            status={@status}
+            error={@error}
+            show_status={true}
+            loading_size="large"
+            auto_scroll={false}
+            empty_message="Enter configuration and click 'Invoke Prompt' to see results"
+            class="bg-white border border-gray-200 rounded-lg p-6 min-h-[200px]"
+          />
         </div>
       </div>
     </div>
